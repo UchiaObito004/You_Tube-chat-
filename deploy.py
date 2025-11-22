@@ -5,27 +5,19 @@ from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
-# -------------------------------------------------------
-# LOAD API KEY
-# -------------------------------------------------------
+
 api_key = st.secrets["GOOGLE_API_KEY"]
 ytt_api=YouTubeTranscriptApi()
-# -------------------------------------------------------
-# INITIALIZE CHAT HISTORY
-# -------------------------------------------------------
+
+
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
 
-# -------------------------------------------------------
-# UI
-# -------------------------------------------------------
 st.title("🎥 YouTube Video Q&A App with Chat History")
 
 video_id = st.text_input("Enter YouTube Video ID")
 
-# -------------------------------------------------------
-# PROCESS VIDEO
-# -------------------------------------------------------
+
 if st.button("Process Video"):
     try:
         st.info("Fetching transcript...")
@@ -67,9 +59,7 @@ if st.button("Process Video"):
     except Exception as e:
         st.error(f"Error: {e}")
 
-# -------------------------------------------------------
-# FALLBACK PROMPT (General Answer)
-# -------------------------------------------------------
+
 fallback_prompt = """
 You are a helpful, knowledgeable assistant.
 
@@ -86,15 +76,11 @@ Question:
 Answer:
 """
 
-# -------------------------------------------------------
-# QUESTION INPUT
-# -------------------------------------------------------
+
 st.subheader("Ask a Question About the Video")
 question = st.text_input("Your question")
 
-# -------------------------------------------------------
-# ANSWER BUTTON
-# -------------------------------------------------------
+
 if st.button("Get Answer"):
 
     if "db" not in st.session_state:
@@ -106,9 +92,7 @@ if st.button("Get Answer"):
         docs = db.similarity_search(question, k=4)
         context_text = " ".join(d.page_content for d in docs).strip()
 
-        # ---------------------------------------------------
-        # If no relevant context → fallback answer
-        # ---------------------------------------------------
+       
         if context_text == "":
             llm = ChatGoogleGenerativeAI(
                 model="gemini-2.5-pro",
@@ -124,9 +108,7 @@ if st.button("Get Answer"):
             st.write(reply)
             st.stop()
 
-        # ---------------------------------------------------
-        # Prompt for video-related answer
-        # ---------------------------------------------------
+        
         template = PromptTemplate.from_template("""
 Use ONLY the video context below to answer.
 If answer is NOT in the context, respond EXACTLY: "NOT_FOUND"
@@ -171,9 +153,7 @@ Answer:
     except Exception as e:
         st.error(f"Error: {e}")
 
-# -------------------------------------------------------
-# DISPLAY CHAT HISTORY
-# -------------------------------------------------------
+
 st.subheader("📝 Chat History")
 
 for role, msg in st.session_state["chat_history"]:
